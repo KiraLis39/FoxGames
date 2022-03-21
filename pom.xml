@@ -4,19 +4,30 @@
 
   <groupId>FoxLib39</groupId>
   <artifactId>FoxGames</artifactId>
-  <version>06.21</version>
+  <version>06.22</version>
   <packaging>jar</packaging>
 
   <name>FoxGames</name>
-  <url>http://maven.apache.org</url>
 
   <properties>
-  	<maven.compiler.source>15</maven.compiler.source>
-    <maven.compiler.target>15</maven.compiler.target>
+  	<maven.compiler.source>16</maven.compiler.source>
+    <maven.compiler.target>16</maven.compiler.target>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
 
   <dependencies>
-    
+
+    <dependency>
+      <groupId>FoxLib39</groupId>
+      <artifactId>FoxOut</artifactId>
+      <version>06.21</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>FoxLib39</groupId>
+      <artifactId>FoxGUI</artifactId>
+      <version>06.21</version>
+      <scope>compile</scope>
+    </dependency>
   </dependencies>
 </project>
