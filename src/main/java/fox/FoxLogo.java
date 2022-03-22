@@ -1,5 +1,6 @@
 package fox;
 
+import lombok.Data;
 import render.FoxRender;
 
 import javax.swing.*;
@@ -10,6 +11,7 @@ import java.awt.image.BufferedImage;
 import java.awt.image.Raster;
 import java.util.concurrent.TimeUnit;
 
+@Data
 public class FoxLogo implements Runnable {
     public enum IMAGE_STYLE {FILL, DEFAULT, WRAP}
     private IMAGE_STYLE imStyle = IMAGE_STYLE.DEFAULT;
@@ -45,7 +47,7 @@ public class FoxLogo implements Runnable {
     }
 
     public void start(String text, BufferedImage[] textureFilesMassive) {
-        start(text, textureFilesMassive, breakKey, IMAGE_STYLE.DEFAULT, BACK_STYLE.DEFAULT);
+        start(text, textureFilesMassive, breakKey, imStyle, bStyle);
     }
 
     public void start(String text, BufferedImage[] textureFilesMassive, IMAGE_STYLE is) {
