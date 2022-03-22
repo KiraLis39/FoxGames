@@ -66,7 +66,7 @@ public class FoxLogo implements Runnable {
         Out.Print(FoxLogo.class, Out.LEVEL.INFO, "Load StartLogo`s images count: " + textureFilesMassive.length);
         images = textureFilesMassive;
 
-        Out.Print(FoxLogo.class, Out.LEVEL.INFO, "Set StartLogo`s breakKey to " + _breakKey);
+        Out.Print(FoxLogo.class, Out.LEVEL.INFO, "Set StartLogo`s breakKey to " + KeyEvent.getKeyText(_breakKey) + "\n");
         breakKey = _breakKey;
 
         this.imStyle = is;
