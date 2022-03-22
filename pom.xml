@@ -11,9 +11,8 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
-                    <source>17</source>
-                    <target>16</target>
-                    <compilerArgs>--enable-preview</compilerArgs>
+                    <source>16</source>
+                    <target>17</target>
                 </configuration>
             </plugin>
         </plugins>
@@ -23,8 +22,8 @@
     <name>FoxGames</name>
 
     <properties>
-        <maven.compiler.source>17</maven.compiler.source>
-        <maven.compiler.target>16</maven.compiler.target>
+        <maven.compiler.source>16</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
@@ -38,12 +37,6 @@
         <dependency>
             <groupId>FoxLib39</groupId>
             <artifactId>FoxOut</artifactId>
-            <version>06.22</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>FoxLib39</groupId>
-            <artifactId>FoxGUI</artifactId>
             <version>06.22</version>
             <scope>compile</scope>
         </dependency>
