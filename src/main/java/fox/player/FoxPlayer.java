@@ -19,6 +19,7 @@ import static fox.Out.Print;
 @Data
 public class FoxPlayer implements iPlayer {
     private static final Map<String, File> trackMap = new LinkedHashMap<>();
+    private static VolumeConverter vConv = new VolumeConverter();
 
     private String name;
     private String lastTrack;
@@ -28,10 +29,10 @@ public class FoxPlayer implements iPlayer {
     private boolean isParallelPlayable = false;
     private boolean showLineInfo = false;
     private boolean isLooped = false;
+    private volatile boolean isBraked = false;
 
-    private int audioBufDim = 4096; // 4096
+    private int audioBufDim = 6144; // default 4096
 
-    private SourceDataLine line;
     private FloatControl masterGain = new EmptyFloatControl();
     private BooleanControl muteControl = new EmptyBooleanControl();
 
@@ -72,12 +73,12 @@ public class FoxPlayer implements iPlayer {
             if (!isParallelPlayable) {
                 stop();
             }
-
+            isBraked = false;
             thread = new Thread(() -> {
                 Print(getClass(), LEVEL.DEBUG, "FoxPlayer.play: The '" + trackName + "' is played...");
 
                 do {
-                    try (BufferedInputStream bis = new BufferedInputStream(new FileInputStream(trackMap.get(lastTrack)));
+                    try (BufferedInputStream bis = new BufferedInputStream(new FileInputStream(trackMap.get(lastTrack))); // default 8192 byte
                          AudioInputStream in = AudioSystem.getAudioInputStream(bis)
                     ) {
                         if (in == null) {
@@ -87,7 +88,7 @@ public class FoxPlayer implements iPlayer {
                         AudioFormat targetFormat = new DefaultFormat01(in.getFormat());
                         try (AudioInputStream dataIn = AudioSystem.getAudioInputStream(targetFormat, in)) {
                             DataLine.Info info = new DataLine.Info(SourceDataLine.class, targetFormat); // get a line from a mixer in the system with the wanted format
-                            line = (SourceDataLine) AudioSystem.getLine(info);
+                            SourceDataLine line = (SourceDataLine) AudioSystem.getLine(info);
                             if (line == null) {
                                 throw new RuntimeException("Media.musicPlay: The track line is null. " +
                                         "A problem with info or format?\n\t(target:\n" + info + ";\n\tformat:\n" + targetFormat + ").");
@@ -102,17 +103,16 @@ public class FoxPlayer implements iPlayer {
                                 getControls(line);
                                 line.start();
 
-                                byte[] buffer = new byte[audioBufDim];
                                 int nBytesRead = 0;
-                                while (nBytesRead != -1 && !Thread.currentThread().isInterrupted()) {
-                                    nBytesRead = dataIn.read(buffer, 0, buffer.length);
-                                    if (nBytesRead != -1) {
-                                        line.write(buffer, 0, nBytesRead);
-                                    }
-                                    Thread.sleep(audioBufDim / 90);
+                                byte[] buffer = new byte[audioBufDim];
+                                while (!isBraked && !thread.isInterrupted() && (nBytesRead = dataIn.read(buffer, 0, buffer.length)) != -1) {
+//                                  if (nBytesRead != -1)
+                                    line.write(buffer, 0, nBytesRead);
+                                    if (isBraked) {break;}
+//                                    Thread.sleep(25);
                                 }
-                            } catch (InterruptedException e) {
-                                Thread.currentThread().interrupt();
+//                            } catch (InterruptedException e) {
+//                                Thread.currentThread().interrupt();
                             } finally {
 //                                line.drain();
                                 line.stop();
@@ -122,7 +122,7 @@ public class FoxPlayer implements iPlayer {
                     } catch (IOException | LineUnavailableException | UnsupportedAudioFileException e) {
                         e.printStackTrace();
                     }
-                } while (isLooped && !Thread.currentThread().isInterrupted());
+                } while (isLooped && !thread.isInterrupted());
 
             });
             thread.start();
@@ -167,51 +167,37 @@ public class FoxPlayer implements iPlayer {
     @Override
     public void setVolume(float volume) {
         if (masterGain != null) {
-            masterGain.setValue(VolumeConverter.volumePercentToGain(volume));
+            masterGain.setValue(vConv.volumePercentToGain(volume));
         }
     }
 
     @Override
     public void stop() {
+        isBraked = true;
         if (isActive()) {
-            for (int i = 0; i < 3; i++) {
-                System.out.println("Try to stop thread '" + thread.getName() + "'...");
-                //        if (player == null) {
-                //            return;
-                //        }
-
-                //        try {
-                //            player.stop();
-                //        } catch (Exception a) {/* IGNORE STOPPED ALREADY */}
-                //        try {
-                //            player.close();
-                //        } catch (Exception a) {/* IGNORE CLOSED ALREADY */}
-
-                //        try {
-                //            if (dev != null && dev.isOpen()) {
-                //                dev.close();
-                //            }
-                //        } catch (Exception e) {
-                //            /* IGNORE */
-                //        }
-                thread.interrupt();
-
+            System.out.println("Try to stop thread '" + thread.getName() + "'...");
+            for (int i = 0; i < 5; i++) {
                 try {
-                    thread.join(500);
+                    thread.interrupt();
+                    thread.join(300);
                 } catch (InterruptedException e) {
                     /* IGNORE */
                 }
 
-                System.out.println("Thread '" + thread.getName() + "' was stopped: " + thread.isInterrupted());
                 if (thread.isInterrupted()) {
                     break;
                 }
             }
 
+            System.out.println("Thread '" + thread.getName() + "' was stopped: " + thread.isInterrupted());
             if (!thread.isInterrupted()) {
-                throw new RuntimeException("The thread '" + thread.getName() + "' isn`t interrupted!");
+                thread.stop();
             }
         }
+    }
+
+    public static VolumeConverter getVolumeConverter() {
+        return vConv;
     }
 
     private static class DefaultFormat01 extends AudioFormat {
