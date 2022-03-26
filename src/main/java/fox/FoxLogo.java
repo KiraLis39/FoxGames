@@ -91,7 +91,7 @@ public class FoxLogo implements Runnable {
                 super.paint(g);
 
                 Graphics2D g2D = (Graphics2D) g;
-                FoxRender.setMedRender(g2D);
+                FoxRender.setRender(g2D, FoxRender.RENDER.MED);
 
                 if (rising) gradeUp();
 
