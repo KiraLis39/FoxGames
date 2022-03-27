@@ -196,7 +196,7 @@ public class FoxPlayer implements iPlayer {
         }
     }
 
-    public static VolumeConverter getVolumeConverter() {
+    public VolumeConverter getVolumeConverter() {
         return vConv;
     }
 
