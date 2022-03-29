@@ -16,7 +16,6 @@ public interface iPlayer {
     void mute(boolean mute);
     void setVolume(float volume);
     void stop();
-    boolean isActive();
 
     default void printLineInfo(SourceDataLine line) {
         if (line == null) {
