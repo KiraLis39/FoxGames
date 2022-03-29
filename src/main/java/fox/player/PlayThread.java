@@ -39,6 +39,7 @@ public class PlayThread extends Thread {
         }
         Print(getClass(), Out.LEVEL.DEBUG, "FoxPlayer.play: The '" + track.getName() + "' is played...");
 
+        SourceDataLine line = null;
         do {
             try (BufferedInputStream bis = new BufferedInputStream(new FileInputStream(track)); // default 8192 byte
                  AudioInputStream in = AudioSystem.getAudioInputStream(bis)
@@ -50,42 +51,40 @@ public class PlayThread extends Thread {
                 AudioFormat targetFormat = new DefaultFormat01(in.getFormat());
                 try (AudioInputStream dataIn = AudioSystem.getAudioInputStream(targetFormat, in)) {
                     DataLine.Info info = new DataLine.Info(SourceDataLine.class, targetFormat); // get a line from a mixer in the system with the wanted format
-                    SourceDataLine line = (SourceDataLine) AudioSystem.getLine(info);
+                    line = (SourceDataLine) AudioSystem.getLine(info);
                     if (line == null) {
                         throw new RuntimeException("Media.musicPlay: The track line is null. " +
                                 "A problem with info or format?\n\t(target:\n" + info + ";\n\tformat:\n" + targetFormat + ").");
-                    }
-
-                    try {
+                    } else {
                         line.open();
+                    }
+                    getControls(line);
+                    line.start();
 
-                        getControls(line);
-                        line.start();
-
-                        byte[] buffer = new byte[audioBufDim];
-                        if (isBraked || currentThread.isInterrupted() || isInterrupted()) {
-                            return;
-                        } else {
-                            int nBytesRead;
-                            while ((nBytesRead = dataIn.read(buffer, 0, buffer.length)) != -1) {
-                                if (isBraked() || currentThread.isInterrupted() || isInterrupted()) {
-                                    break;
-                                }
-                                line.write(buffer, 0, nBytesRead);
-                                Thread.sleep(15);
+                    byte[] buffer = new byte[audioBufDim];
+                    if (isBraked || currentThread.isInterrupted() || isInterrupted()) {
+                        return;
+                    } else {
+                        int nBytesRead;
+                        while ((nBytesRead = dataIn.read(buffer, 0, buffer.length)) != -1) {
+                            if (isBraked() || currentThread.isInterrupted() || isInterrupted()) {
+                                break;
                             }
+                            line.write(buffer, 0, nBytesRead);
+                            Thread.sleep(15);
                         }
-                    } catch (Exception e) {
-                        throw e;
-                    } finally {
-//                        line.drain();
-                        line.stop();
-                        line.close();
                     }
                 }
             } catch (Exception e) {
                 ex = e;
                 interrupt();
+                currentThread.interrupt();
+            } finally {
+                if (line != null) {
+//                    line.drain();
+                    line.stop();
+                    line.close();
+                }
             }
         } while (isLooped && !isInterrupted());
     }

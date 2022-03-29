@@ -59,13 +59,11 @@ public class FoxPlayer implements iPlayer {
         if (trackMap.containsKey(trackName)) {
             Print(getClass(), LEVEL.DEBUG, "FoxPlayer.play: The track '" + trackName + "' was found in the trackMap.");
             if (!isParallelPlayable) {
-                for (PlayThread playThread : threadList) {
-                    playThread.close();
-                }
-                threadList.clear();
+                stop();
             }
             threadList.add(new PlayThread(getName(), trackMap.get(trackName), isLooped));
         } else {
+            stop();
             Print(getClass(), LEVEL.INFO, "FoxPlayer.play: The track '" + trackName + "' is absent in the trackMap.");
             throw new FoxPlayerException(String.format("FoxPlayer.play: The track '%s' is absent in the trackMap.", trackName));
         }
@@ -106,6 +104,7 @@ public class FoxPlayer implements iPlayer {
                     thread.getException().printStackTrace();
                 }
             }
+            threadList.clear();
         }
     }
 
