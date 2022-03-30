@@ -11,9 +11,10 @@ public class VolumeConverter {
      * Метод преобразовывает значения процентов громкости в
      * gain для аудио-устройств.
      * @param percent текущий процент громкости (от 0 до 100)
-     * @return gain аудио-устройства (от -80 до 6).
+     * @return gain аудио-устройства (от {@param minimum} до {@param maximum}).
      */
     public float volumePercentToGain(float percent) {
+//        float gain = (maximum - minimum) * (percent / 100f);
         float gain = minimum - ((minimum - maximum) * (percent / 100f));
 //        System.out.println("Income percent: " + percent + "; Gain: " + gain);
         return gain;
@@ -22,7 +23,7 @@ public class VolumeConverter {
     /**
      * Метод преобразовывает gain аудио-устройства в
      * значение процентов громкости для ползунков.
-     * @param gain текущий гейн аудио-устройства (от -80 до 6)
+     * @param gain текущий гейн аудио-устройства (от {@param minimum} до {@param maximum})
      * @return значение процентов (от 0 до 100).
      */
     public int gainToVolumePercent(float gain) {

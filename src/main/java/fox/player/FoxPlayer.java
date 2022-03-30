@@ -4,6 +4,7 @@ import fox.Out.LEVEL;
 import lombok.Data;
 import lombok.NonNull;
 
+import java.awt.*;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -17,6 +18,9 @@ import static fox.Out.Print;
 public class FoxPlayer implements iPlayer {
     private static final Map<String, File> trackMap = new LinkedHashMap<>();
     private static VolumeConverter vConv = new VolumeConverter();
+    private volatile float currentPlayerVolume = vConv.getMinimum();
+    private volatile boolean isCurrentPlayerMute = false;
+
     private String name;
     private String lastTrack;
 
@@ -27,11 +31,12 @@ public class FoxPlayer implements iPlayer {
     private boolean loop = true;
 
 
+
     public FoxPlayer(@NonNull String name) {
         this.name = name;
     }
 
-    public synchronized static VolumeConverter getVolumeConverter() {
+    public static VolumeConverter getVolumeConverter() {
         return vConv;
     }
 
@@ -56,12 +61,13 @@ public class FoxPlayer implements iPlayer {
 
     @Override
     public synchronized void play(@NonNull String trackName, boolean isLooped) {
+        if (isCurrentPlayerMute) {return;}
         if (trackMap.containsKey(trackName)) {
             Print(getClass(), LEVEL.DEBUG, "FoxPlayer.play: The track '" + trackName + "' was found in the trackMap.");
             if (!isParallelPlayable) {
                 stop();
             }
-            threadList.add(new PlayThread(getName(), trackMap.get(trackName), isLooped));
+            threadList.add(new PlayThread(getName(), trackMap.get(trackName), vConv.volumePercentToGain(currentPlayerVolume), isLooped));
         } else {
             stop();
             Print(getClass(), LEVEL.INFO, "FoxPlayer.play: The track '" + trackName + "' is absent in the trackMap.");
@@ -72,19 +78,19 @@ public class FoxPlayer implements iPlayer {
 
     @Override
     public void mute(boolean mute) {
+        isCurrentPlayerMute = mute;
         if (threadList != null && threadList.size() > 0) {
             for (PlayThread playThread : threadList) {
-                playThread.mute(mute);
+                playThread.mute(isCurrentPlayerMute);
             }
         }
     }
 
     @Override
     public void setVolume(float volume) {
-        if (threadList != null && threadList.size() > 0) {
-            for (PlayThread playThread : threadList) {
-                playThread.setVolume(volume);
-            }
+        currentPlayerVolume = volume;
+        for (PlayThread playThread : threadList) {
+            playThread.setVolume(vConv.volumePercentToGain(currentPlayerVolume));
         }
     }
 
@@ -95,11 +101,7 @@ public class FoxPlayer implements iPlayer {
                 if (thread == null) {
                     continue;
                 }
-
-                System.out.println("Try to stop thread '" + thread.getName() + "'...");
                 thread.close();
-
-                System.err.println("Media thread '" + getName() + "' was stopped.");
                 if (thread.getException() != null) {
                     thread.getException().printStackTrace();
                 }
