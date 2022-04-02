@@ -62,7 +62,7 @@ public class PlayThread extends Thread {
                     } else {
                         line.open();
                     }
-                    getControls(line, volume);
+                    getControls(line, masterVolume == null ? volume : masterVolume.getValue());
                     line.start();
 
                     byte[] buffer = new byte[audioBufDim];
@@ -147,7 +147,7 @@ public class PlayThread extends Thread {
 
     public void close() {
         new Thread(() -> {
-            System.out.println("\nTry to stop thread '" + getName() + "'...");
+//            System.out.println("\nTry to stop thread '" + getName() + "'...");
             try {
                 volumeFloater(0);
                 vfThread.join();
@@ -157,7 +157,7 @@ public class PlayThread extends Thread {
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-            System.err.println("Media thread '" + getName() + "' was stopped.");
+//            System.err.println("Media thread '" + getName() + "' was stopped.");
         }).start();
     }
 

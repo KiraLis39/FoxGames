@@ -61,16 +61,17 @@ public class FoxPlayer implements iPlayer {
 
     @Override
     public synchronized void play(@NonNull String trackName, boolean isLooped) {
+        lastTrack = trackName;
         if (isCurrentPlayerMute) {return;}
         if (trackMap.containsKey(trackName)) {
-            Print(getClass(), LEVEL.DEBUG, "FoxPlayer.play: The track '" + trackName + "' was found in the trackMap.");
+//            Print(getClass(), LEVEL.DEBUG, "FoxPlayer.play: The track '" + trackName + "' was found in the trackMap.");
             if (!isParallelPlayable) {
                 stop();
             }
             threadList.add(new PlayThread(getName(), trackMap.get(trackName), vConv.volumePercentToGain(currentPlayerVolume), isLooped));
         } else {
             stop();
-            Print(getClass(), LEVEL.INFO, "FoxPlayer.play: The track '" + trackName + "' is absent in the trackMap.");
+            Print(getClass(), LEVEL.DEBUG, "FoxPlayer.play: The track '" + trackName + "' is absent in the trackMap.");
             throw new FoxPlayerException(String.format("FoxPlayer.play: The track '%s' is absent in the trackMap.", trackName));
         }
 
