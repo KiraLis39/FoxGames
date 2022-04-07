@@ -54,10 +54,10 @@ public class FoxLogo implements Runnable {
             throw new RuntimeException("StartLogoRenderer: start: Error. Textures massive is NULL.");
         }
         this.cornerLabelText = cornerLabelText;
-        Out.Print(FoxLogo.class, LEVEL.INFO, "Load StartLogo`s images count: " + textureFilesMassive.length);
+        Out.Print(FoxLogo.class, LEVEL.DEBUG, "Load StartLogo`s images count: " + textureFilesMassive.length);
         images = textureFilesMassive;
 
-        Out.Print(FoxLogo.class, LEVEL.INFO, "Set StartLogo`s breakKey to " + KeyEvent.getKeyText(_breakKey) + "\n");
+        Out.Print(FoxLogo.class, LEVEL.DEBUG, "Set StartLogo`s breakKey to " + KeyEvent.getKeyText(_breakKey) + "\n");
         breakKey = _breakKey;
 
         this.imStyle = imStyle;
