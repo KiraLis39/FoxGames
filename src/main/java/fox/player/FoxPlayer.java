@@ -4,7 +4,6 @@ import fox.Out.LEVEL;
 import lombok.Data;
 import lombok.NonNull;
 
-import java.awt.*;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -56,11 +55,15 @@ public class FoxPlayer implements iPlayer {
     }
 
     public synchronized void play(@NonNull String trackName) {
-        this.play(trackName, loop);
+        try {
+            this.play(trackName, loop);
+        } catch (FoxPlayerException fpe) {
+            fpe.printStackTrace();
+        }
     }
 
     @Override
-    public synchronized void play(@NonNull String trackName, boolean isLooped) {
+    public synchronized void play(@NonNull String trackName, boolean isLooped) throws FoxPlayerException {
         lastTrack = trackName;
         if (isCurrentPlayerMute) {return;}
         if (trackMap.containsKey(trackName)) {
